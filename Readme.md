@@ -44,3 +44,4 @@ This Go program demonstrates a basic web scraper using the Colly library. It all
 
 - This program uses a mutex for the counter and to synchronize access to shared variables across goroutines.
 - Error handling is implemented for failed requests to websites.
+- Uses channels to send message to user about the Scraped data.
