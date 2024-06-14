@@ -35,37 +35,48 @@ func scrap(web string, wg *sync.WaitGroup, mutex *sync.Mutex) {
 
 func webScrape(web string) {
 	c := colly.NewCollector()
+	msg:=make(chan string, 10)
 
 	// Scrape Website Title
 	c.OnHTML("title", func(e *colly.HTMLElement) {
-		title := e.Text
-		fmt.Printf("Title: %s\n", title)
+		// title := e.Text
+		msg<-e.Text
+		// fmt.Printf("Title: %s\n", title)
+		fmt.Printf("Title: %s\n", <-msg)
 	})
 
 	// Scrape MetaData Description
 	c.OnHTML("meta[name=description]", func(e *colly.HTMLElement) {
-		description := e.Attr("content")
-		fmt.Printf("Meta Description: %s\n", description)
+		// description := e.Attr("content")
+		msg<-e.Attr("content")
+		// fmt.Printf("Meta Description: %s\n", description)
+		fmt.Printf("Meta Description: %s\n", <-msg)
 	})
 
 	// Scrape Headings
 	c.OnHTML("h1", func(e *colly.HTMLElement) {
-		heading := e.Text
-		lowerHeading := strings.ToLower(heading)
-		fmt.Printf("Heading: %s\n", lowerHeading)
+		// heading := e.Text
+		// lowerHeading := strings.ToLower(heading)
+		msg<-strings.ToLower(e.Text)
+		// fmt.Printf("Heading: %s\n", lowerHeading)
+		fmt.Printf("Heading: %s\n", <-msg)
 	})
 
 	// Scrape Paragraphs
 	c.OnHTML("p", func(e *colly.HTMLElement) {
-		paragraph := e.Text
-		lowerParagraph := strings.ToLower(paragraph)
-		fmt.Printf("Paragraph: %s\n", lowerParagraph)
+		// paragraph := e.Text
+		// lowerParagraph := strings.ToLower(paragraph)
+		msg<-strings.ToLower(e.Text)
+		// fmt.Printf("Paragraph: %s\n", lowerParagraph)
+		fmt.Printf("Paragraph: %s\n", <-msg)
 	})
 
 	// Scrape Outgoing Links
 	c.OnHTML("a[href]", func(e *colly.HTMLElement) {
 		link := e.Attr("href")
+		// msg<-e.Attr(e.Attr("href"))
 		fmt.Printf("Link: %s\n", link)
+		// fmt.Printf("Link: %s\n", <-msg)
 	})
 
 	c.OnError(func(r *colly.Response, err error) {
@@ -86,11 +97,13 @@ func main() {
 		fmt.Print("Enter website link (type `quit` to Exit): ")
 		fmt.Scan(&web)
 		if strings.ToLower(web)=="quit" {
+			if len(slice)>0 {
+				fmt.Printf("The following websites shall be Scraped:%v\n", slice)
+			}
 			break
 		}
 		slice=append(slice, web)
 	}
-	fmt.Println(slice)
 	for j:=0; j<len(slice); j++ {
 		wg.Add(1)
 		go scrap(slice[j], &wg, &mutex)
